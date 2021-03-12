@@ -14,4 +14,6 @@ class Category extends Model
     protected $casts = [
         'id' => 'string'
     ];
+
+    public $incrementing = false;
 }
