@@ -3,14 +3,18 @@
 namespace Tests\Unit;
 
 use App\Models\Category;
-use PHPUnit\Framework\TestCase;
+use App\Models\Genre;
+use Tests\TestCase;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\Uuid;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class CategoryTest extends TestCase
 {
+    use DatabaseMigrations;
     public function testFillableAttribute()
     {
+        Genre::create(['name' => 'test']);
         $fillable = ['name', 'description', 'is_active'];
         $category = new Category();
         $this->assertEquals($fillable, $category->getFillable());
