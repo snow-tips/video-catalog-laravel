@@ -100,5 +100,8 @@ class CategoryTest extends TestCase
         $category->delete();
         $this->expectException(ModelNotFoundException::class);
         $categoryFromDb = Category::findOrFail($category->id);
+
+        $category->restore();
+        $this->assertNotNull(Category::find($category->id));
     }
 }

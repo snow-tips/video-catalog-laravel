@@ -81,5 +81,8 @@ class GenreTest extends TestCase
         $genre->delete();
         $this->expectException(ModelNotFoundException::class);
         $genreFromDb = Genre::findOrFail($genre->id);
+
+        $genre->restore();
+        $this->assertNotNull(Genre::find($genre->id));
     }
 }
