@@ -30,4 +30,4 @@ steps:
 
 - id: "Chown /var/www"
   name: 'gcr.io/cloud-builders/docker'
-  args: ['exec', '-u', 'root', '-t', 'app', 'chown', '-R', 'www-data:www-data' '/var/www']
+  args: ['exec', '-u', 'root', '-t', 'app', 'chown', '-R', 'www-data:www-data', '/var/www']
