@@ -4,6 +4,10 @@ steps:
   name: 'gcr.io/$PROJECT_ID/docker-compose'
   args: ['-f', 'docker-compose.prod.yaml', 'up', '-d']
 
+- id: "Chown /var/www"
+  name: 'gcr.io/cloud-builders/docker'
+  args: ['exec', '-u', 'root', '-t', 'app', 'chown', '-R', 'www-data:www-data', '/var/www']
+
 - id: "Running composer"
   name: 'gcr.io/cloud-builders/docker'
   args: ['exec', '-t', 'app', 'composer', 'install']
@@ -27,7 +31,3 @@ steps:
 - id: "Running Phpunit"
   name: 'gcr.io/cloud-builders/docker'
   args: ['exec', '-t', 'app', '/var/www/vendor/bin/phpunit', '-c', '/var/www/phpunit.xml']
-
-- id: "Chown /var/www"
-  name: 'gcr.io/cloud-builders/docker'
-  args: ['exec', '-u', 'root', '-t', 'app', 'chown', '-R', 'www-data:www-data', '/var/www']
