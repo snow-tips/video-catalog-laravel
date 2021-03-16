@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 
 class CategoryController extends Controller
@@ -16,8 +17,10 @@ class CategoryController extends Controller
     public function store(CategoryRequest $request)
     {
         $request->validated();
-
-        return Category::create($request->all());
+        $category = Category::create($request->all());
+        $category->refresh();
+        // return new CategoryResource($category);
+        return $category;
     }
 
     public function show(Category $category)
@@ -31,7 +34,6 @@ class CategoryController extends Controller
 
         $category->update($request->all());
         return $category;
-
     }
 
     public function destroy(Category $category)
