@@ -17,7 +17,10 @@ class GenreController extends Controller
     {
         $request->validated();
 
-        return Genre::create($request->all());
+        $genre = Genre::create($request->all());
+        $genre->refresh();
+
+        return $genre;
     }
 
     public function show(Genre $genre)
@@ -31,7 +34,6 @@ class GenreController extends Controller
 
         $genre->update($request->all());
         return $genre;
-
     }
 
     public function destroy(Genre $genre)
