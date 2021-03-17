@@ -5,12 +5,12 @@ namespace Tests\Feature\Http\Controllers\Api;
 use App\Models\Genre;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Lang;
 use Tests\TestCase;
+use Tests\Traits\TestValidations;
 
 class GenreControllerTest extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseMigrations, TestValidations;
 
     public function testIndex()
     {
@@ -75,36 +75,23 @@ class GenreControllerTest extends TestCase
 
     protected function assertInvalidationRequired($response)
     {
-        $response
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('name')
-            ->assertJsonMissingValidationErrors(['is_active'])
-            ->assertJsonFragment([
-                Lang::get('validation.required', ['attribute' => 'name'])
-            ]);
+        $this->assertInvalidationFields($response, ['name'], 'required');
+        $response->assertJsonMissingValidationErrors(['is_active']);
     }
 
     protected function assertInvalidationMax($response)
     {
-        $response
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('name')
-            ->assertJsonFragment([
-                Lang::get('validation.max.string', [
-                    'attribute' => 'name',
-                    'max' => 255
-                ])
-            ]);
+        $this->assertInvalidationFields(
+            $response,
+            ['name'],
+            'max.string',
+            ['max' => 255]
+        );
     }
 
     protected function assertInvalidationNotBoolean($response)
     {
-        $response
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('is_active')
-            ->assertJsonFragment([
-                Lang::get('validation.boolean', ['attribute' => 'is active'])
-            ]);
+        $this->assertInvalidationFields($response, ['is_active'], 'boolean');
     }
 
     public function testStore()
@@ -211,7 +198,7 @@ class GenreControllerTest extends TestCase
         $this->expectException(ModelNotFoundException::class);
 
         Genre::findOrFail($genre->id);
-        
+
         $this->assertNotNull(Genre::withTrashed()->find($genre->id));
     }
 }
