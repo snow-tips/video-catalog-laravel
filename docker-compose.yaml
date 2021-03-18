@@ -29,8 +29,6 @@ services:
             - app
 
     db:
-        # image: mysql:5.7
-        # command: --innodb-use-native-aio=0
         build: ./.docker/mysql
         container_name: micro-videos-db
         restart: always
@@ -40,7 +38,6 @@ services:
         volumes:
             - ./.docker/dbdata:/var/lib/mysql
             - ./.docker/mysql:/docker-entrypoint-initdb.d
-            - ./.docker/mysql/my.cnf:/etc/mysql/my.cnf
         environment:
             - MYSQL_ROOT_PASSWORD=root
             - MYSQL_USER=root
