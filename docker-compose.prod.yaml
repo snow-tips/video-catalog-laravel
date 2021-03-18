@@ -4,6 +4,7 @@ services:
 
     app:
         build: .
+        dockerfile: Dockerfile.prod
         container_name: app
         volumes:
             - .:/var/www
@@ -28,9 +29,9 @@ services:
             - app
 
     db:
-        # image: mysql:5.7
-        # command: --innodb-use-native-aio=0
-        build: ./.docker/mysql
+        image: mysql:5.7
+        command: --innodb-use-native-aio=0
+        #build: ./.docker/mysql
         container_name: db
         restart: always
         tty: true
