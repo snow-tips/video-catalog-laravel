@@ -2,7 +2,7 @@ steps:
 
 - id: "Running docker-compose"
   name: 'gcr.io/$PROJECT_ID/docker-compose'
-  args: ['-f', 'docker-compose.prod.yaml', 'up', '-d', '--build']
+  args: ['-f', 'docker-compose.cloudbuild.yaml', 'up', '-d']
 
 - id: "Chown /var/www"
   name: 'gcr.io/cloud-builders/docker'
@@ -23,10 +23,6 @@ steps:
 - id: "Running key:generate"
   name: 'gcr.io/cloud-builders/docker'
   args: ['exec', '-t', 'app', 'php', '/var/www/artisan', 'key:generate']
-
-- id: "Checking db container logs"
-  name: 'gcr.io/$PROJECT_ID/docker-compose'
-  args: ['logs', 'db']
 
 - id: "Running migrations"
   name: 'gcr.io/cloud-builders/docker'
