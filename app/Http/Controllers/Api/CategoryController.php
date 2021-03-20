@@ -3,19 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    private $rules = [
+        'name' => 'required|string|max:255',
+        'is_active' => 'boolean'
+    ];
+
     public function index()
     {
         return Category::all();
     }
 
-    public function store(CategoryRequest $request)
+    public function store(Request $request)
     {
-        $request->validated();
+        $this->validate($request, $this->rules);
         $category = Category::create($request->all());
         $category->refresh();
         return $category;
@@ -26,10 +31,9 @@ class CategoryController extends Controller
         return $category;
     }
 
-    public function update(CategoryRequest $request, Category $category)
+    public function update(Request $request, Category $category)
     {
-        $request->validated();
-
+        $this->validate($request, $this->rules);
         $category->update($request->all());
         return $category;
     }

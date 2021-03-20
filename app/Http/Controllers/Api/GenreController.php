@@ -3,20 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\GenreRequest;
 use App\Models\Genre;
+use Illuminate\Http\Request;
 
 class GenreController extends Controller
 {
+    private $rules = [
+        'name' => 'required|string|max:255',
+        'is_active' => 'boolean'
+    ];
+
     public function index()
     {
         return Genre::all();
     }
 
-    public function store(GenreRequest $request)
+    public function store(Request $request)
     {
-        $request->validated();
-
+        $this->validate($request, $this->rules);
         $genre = Genre::create($request->all());
         $genre->refresh();
 
@@ -28,9 +32,9 @@ class GenreController extends Controller
         return $genre;
     }
 
-    public function update(GenreRequest $request, Genre $genre)
+    public function update(Request $request, Genre $genre)
     {
-        $request->validated();
+        $this->validate($request, $this->rules);
 
         $genre->update($request->all());
         return $genre;
