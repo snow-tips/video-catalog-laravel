@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
-use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 
 class CategoryController extends Controller
@@ -19,7 +18,6 @@ class CategoryController extends Controller
         $request->validated();
         $category = Category::create($request->all());
         $category->refresh();
-        // return new CategoryResource($category);
         return $category;
     }
 
