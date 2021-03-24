@@ -23,27 +23,31 @@ abstract class BasicCrudController extends Controller
         return $model;
     }
 
-    // protected function rulesStore()
-    // {
+    public function show($id)
+    {
+        return $this->findOrFail($id);
+    }
 
-    // }
+    protected function findOrFail($id)
+    {
+        $model = $this->model();
+        $keyName = (new $model)->getRouteKeyName();
+        return $this->model()::where($keyName, $id)->firstOrFail();
+    }
 
-    // public function show(Category $category)
-    // {
-    //     return $category;
-    // }
+    public function update(Request $request, $id)
+    {
+        $validatedData = $this->validate($request, $this->rulesStore());
+        $model = $this->findOrFail($id);
+        $model->update($validatedData);
+        $model->refresh();
+        return $model;
+    }
 
-    // public function update(FormRequest $request, Category $category)
-    // {
-    //     $request->validated();
-
-    //     $category->update($request->all());
-    //     return $category;
-    // }
-
-    // public function destroy(Category $category)
-    // {
-    //     $category->delete();
-    //     return response()->noContent();
-    // }
+    public function destroy($id)
+    {
+        $model = $this->findOrFail($id);
+        $model->delete();
+        return response()->noContent();
+    }
 }

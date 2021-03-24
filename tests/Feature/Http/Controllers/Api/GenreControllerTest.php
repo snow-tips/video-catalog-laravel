@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Genre;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
@@ -121,12 +120,6 @@ class GenreControllerTest extends TestCase
         $response
             ->assertStatus(204)
             ->assertNoContent();
-
-        $this->expectException(ModelNotFoundException::class);
-
-        Genre::findOrFail($this->genre->id);
-
-        $this->assertNotNull(Genre::withTrashed()->find($this->genre->id));
     }
 
     protected function routeStore()

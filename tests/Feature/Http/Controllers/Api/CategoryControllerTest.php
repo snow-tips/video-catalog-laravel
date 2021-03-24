@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Category;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
@@ -138,12 +137,6 @@ class CategoryControllerTest extends TestCase
         $response
             ->assertStatus(204)
             ->assertNoContent();
-
-        $this->expectException(ModelNotFoundException::class);
-
-        Category::findOrFail($this->category->id);
-
-        $this->assertNotNull(Category::withTrashed()->find($this->category->id));
     }
 
     protected function routeStore()
