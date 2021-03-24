@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Category;
+use App\Models\CastMember;
 
-class CategoryController extends BasicCrudController
+class CastMemberController extends BasicCrudController
 {
     private $rules = [
         'name' => 'required|string|max:255',
-        'is_active' => 'boolean',
-        'description' => ''
+        'type' => 'integer|between:1,2'
     ];
 
     protected function model()
     {
-        return Category::class;
+        return CastMember::class;
     }
 
     protected function rulesStore()
