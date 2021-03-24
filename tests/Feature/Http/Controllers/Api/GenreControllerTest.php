@@ -92,11 +92,6 @@ class GenreControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $this->genre = factory(Genre::class)->create([
-            'name' => 'test',
-            'is_active' => false
-        ]);
-
         $sendData = [
             'name' => 'test1',
             'is_active' => true

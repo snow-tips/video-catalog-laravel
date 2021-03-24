@@ -20,4 +20,9 @@ class GenreController extends BasicCrudController
     {
         return $this->rules;
     }
+
+    protected function rulesUpdate()
+    {
+        return $this->rules;
+    }
 }

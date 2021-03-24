@@ -17,12 +17,14 @@ class CastMemberControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->castMember = factory(CastMember::class)->create();
+        $this->castMember = factory(CastMember::class)->create([
+            'type' => CastMember::TYPE_DIRECTOR
+        ]);
     }
 
     public function testIndex()
     {
-        $response = $this->get(route('cast-members.index'));
+        $response = $this->get(route('cast_members.index'));
 
         $response
             ->assertStatus(200)
@@ -31,7 +33,7 @@ class CastMemberControllerTest extends TestCase
 
     public function testShow()
     {
-        $response = $this->get(route('cast-members.show', ['cast_member' => $this->castMember->id]));
+        $response = $this->get(route('cast_members.show', ['cast_member' => $this->castMember->id]));
 
         $response
             ->assertStatus(200)
@@ -41,65 +43,51 @@ class CastMemberControllerTest extends TestCase
     public function testInvalidationData()
     {
         $data = [
-            'name' => ''
+            'name' => '',
+            'type' => '',
         ];
 
         $this->assertInvalidationInStoreAction($data, 'required');
         $this->assertInvalidationInUpdateAction($data, 'required');
 
         $data = [
-            'name' => str_repeat('a', 256)
+            'type' => 'a',
         ];
 
-        $this->assertInvalidationInStoreAction($data, 'max.string', ['max' => 255]);
-        $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 255]);
-
-
-        $data = [
-            'type' => 'a'
-        ];
-
-        $this->assertInvalidationInStoreAction($data, 'integer');
-        $this->assertInvalidationInUpdateAction($data, 'integer');
+        $this->assertInvalidationInStoreAction($data, 'in');
+        $this->assertInvalidationInUpdateAction($data, 'in');
     }
 
     public function testStore()
     {
         $sendData = [
-            'name' => 'test',
-            'type' => 1
+            [
+                'name' => 'test',
+                'type' => CastMember::TYPE_DIRECTOR
+            ],
+            [
+                'name' => 'test',
+                'type' => CastMember::TYPE_ACTOR
+            ]
         ];
 
         $defaultAttributes = [
             'deleted_at' => null
         ];
 
-        $response = $this->assertStore($sendData, $sendData + $defaultAttributes);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
-
-        $sendData = [
-            'name' => 'test_name',
-            'type' => 1
-        ];
-
-        $this->assertStore($sendData, $sendData + [
-            'name' => 'test_name',
-            'type' => 1
-        ]);
+        foreach ($sendData as $value) {
+            $response = $this->assertStore($value, $value + $defaultAttributes);
+            $response->assertJsonStructure([
+                'created_at', 'updated_at'
+            ]);
+        }
     }
 
     public function testUpdate()
     {
-        $this->castMember = factory(CastMember::class)->create([
-            'name' => 'test',
-            'type' => 1
-        ]);
-
         $sendData = [
             'name' => 'test1',
-            'type' => 2
+            'type' => CastMember::TYPE_ACTOR
         ];
 
         $response = $this->assertUpdate($sendData, $sendData + ['deleted_at' => null]);
@@ -114,7 +102,7 @@ class CastMemberControllerTest extends TestCase
 
         $response = $this->json(
             'DELETE',
-            route('cast-members.destroy', ['cast_member' => $this->castMember->id])
+            route('cast_members.destroy', ['cast_member' => $this->castMember->id])
         );
 
         $response
@@ -124,12 +112,12 @@ class CastMemberControllerTest extends TestCase
 
     protected function routeStore()
     {
-        return route('cast-members.store');
+        return route('cast_members.store');
     }
 
     protected function routeUpdate()
     {
-        return route('cast-members.update', ['cast_member' => $this->castMember->id]);
+        return route('cast_members.update', ['cast_member' => $this->castMember->id]);
     }
 
     protected function model()

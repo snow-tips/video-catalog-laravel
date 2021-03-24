@@ -80,8 +80,8 @@ class BasicCrudControllerTest extends TestCase
     
         $object = $this->controller->store($request);
         $this->assertEquals(
-            CategoryStub::find($this->ID_LAST_CATEGORY_STUB_CREATED + 1)->toArray(),
-            $object->toArray()
+            $object->toArray(),
+            CategoryStub::find($this->ID_LAST_CATEGORY_STUB_CREATED + 1)->toArray()
         );
     }
 
@@ -96,17 +96,18 @@ class BasicCrudControllerTest extends TestCase
     
         $object = $this->controller->update($request, $this->category->id);
         $this->assertEquals(
-            CategoryStub::find($this->category->id)->toArray(),
-            $object->toArray()
+            $object->toArray(),
+            CategoryStub::find($this->category->id)->toArray()
         );
     }
 
     public function testDestroy()
     {   
-        $this->controller->destroy($this->category->id);
-        $result = CategoryStub::find($this->category->id);
-        $this->assertNull($result);
-        $this->assertNotNull(CategoryStub::withTrashed()->find($this->category->id));
+        $response = $this->controller->destroy($this->category->id);
+        $this
+            ->createTestResponse($response)
+            ->assertStatus(204);
+        $this->assertCount(0, CategoryStub::all());
     }
 
     public function testIfFindOrFailFetchModel()

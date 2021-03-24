@@ -7,7 +7,7 @@ use Faker\Generator as Faker;
 
 $factory->define(CastMember::class, function (Faker $faker) {
     return [
-        'name' => $faker->name,
-        'type' => $faker->numberBetween(1, 2)
+        'name' => $faker->lastName,
+        'type' => array_rand([CastMember::TYPE_DIRECTOR, CastMember::TYPE_ACTOR])
     ];
 });

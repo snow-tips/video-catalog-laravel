@@ -8,8 +8,8 @@ class CategoryController extends BasicCrudController
 {
     private $rules = [
         'name' => 'required|string|max:255',
-        'is_active' => 'boolean',
-        'description' => ''
+        'description' => 'nullable',
+        'is_active' => 'boolean'
     ];
 
     protected function model()
@@ -18,6 +18,11 @@ class CategoryController extends BasicCrudController
     }
 
     protected function rulesStore()
+    {
+        return $this->rules;
+    }
+
+    protected function rulesUpdate()
     {
         return $this->rules;
     }
