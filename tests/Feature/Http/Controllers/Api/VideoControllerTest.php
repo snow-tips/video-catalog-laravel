@@ -2,8 +2,13 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\VideoController;
+use App\Models\Category;
+use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\Request;
+use Tests\Exceptions\TestException;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
@@ -13,11 +18,21 @@ class VideoControllerTest extends TestCase
     use DatabaseMigrations, TestValidations, TestSaves;
 
     private $video;
+    private $sendData;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->video = factory(Video::class)->create();
+        $this->video = factory(Video::class)->create([
+            'opened' => false
+        ]);
+        $this->sendData = [
+            'title' => 'title',
+            'description' => 'description',
+            'year_launched' => 2010,
+            'rating' => Video::RATING_LIST[0],
+            'duration' => 98
+        ];
     }
 
     public function testIndex()
@@ -46,10 +61,33 @@ class VideoControllerTest extends TestCase
             'year_launched' => '',
             'rating' => '',
             'duration' => '',
+            'categories_id' => '',
+            'genres_id' => ''
         ];
 
         $this->assertInvalidationInStoreAction($data, 'required');
         $this->assertInvalidationInUpdateAction($data, 'required');
+    }
+
+    public function  testInvalidationInArrayFieds()
+    {
+        $fields = ['categories_id', 'genres_id'];
+
+        foreach ($fields as $field) {
+            $data = [
+                $field => 'NOT_A_ARRAY'
+            ];
+
+            $this->assertInvalidationInStoreAction($data, 'array');
+            $this->assertInvalidationInUpdateAction($data, 'array');
+
+            $data = [
+                $field => [100]
+            ];
+
+            $this->assertInvalidationInStoreAction($data, 'exists');
+            $this->assertInvalidationInUpdateAction($data, 'exists');
+        }
     }
 
     public function testInvalidationMax()
@@ -107,68 +145,91 @@ class VideoControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data, 'in');
     }
 
-    public function testStore()
+    public function testSave()
     {
-        $sendData = [
-            'title' => '',
-            'description' => '',
-            'year_launched' => '',
-            'rating' => '',
-            'duration' => ''
+        $category = factory(Category::class)->create();
+        $genre = factory(Genre::class)->create();
+
+        $data = [
+            [
+                'send_data' => $this->sendData + [
+                    'categories_id' => [$category->id],
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + ['opened' => false]
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'opened' => true,
+                    'categories_id' => [$category->id],
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + ['opened' => true]
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'rating' => Video::RATING_LIST[1],
+                    'categories_id' => [$category->id],
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+            ]
         ];
 
-        $defaultAttributes = [
-            'description' => null,
-            'is_active' => true,
-            'deleted_at' => null
-        ];
+        foreach ($data as $key => $value) {
+            $response = $this->assertStore(
+                $value['send_data'],
+                $value['test_data'] + ['deleted_at' => null]
+            );
 
-        $response = $this->assertStore($sendData, $sendData + $defaultAttributes);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+            $response->assertJsonStructure([
+                'created_at',
+                'updated_at'
+            ]);
 
-        $sendData = [
-            'name' => 'test',
-            'description' => 'description',
-            'is_active' => false
-        ];
+            $response = $this->assertUpdate(
+                $value['send_data'],
+                $value['test_data'] + ['deleted_at' => null]
+            );
 
-        $this->assertStore($sendData, $sendData + [
-            'description' => 'description',
-            'is_active' => false
-        ]);
+            $response->assertJsonStructure([
+                'created_at',
+                'updated_at'
+            ]);
+        }
     }
 
-    public function testUpdate()
+    public function testRollbackStore()
     {
-        $sendData = [
-            'name' => 'test',
-            'description' => 'description',
-            'is_active' => true
-        ];
+        $controller =  \Mockery::mock(VideoController::class)
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
 
-        $response = $this->assertUpdate($sendData, $sendData + ['deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+        $controller
+            ->shouldReceive('validate')
+            ->withAnyArgs()
+            ->andReturn($this->sendData);
+        
+        $controller
+            ->shouldReceive('rulesStore')
+            ->withAnyArgs()
+            ->andReturn([]);
 
-        $sendData = [
-            'name' => 'test',
-            'description' => '',
-            'is_active' => true
-        ];
+        $request = \Mockery::mock(Request::class);
 
-        $this->assertUpdate($sendData, array_merge($sendData, ['description' => null]));
+        $controller
+            ->shouldReceive('handleRelations')
+            ->once()
+            ->andThrow(new TestException());
 
-        $sendData['description'] = 'test';
-        $this->assertUpdate($sendData, array_merge($sendData, ['description' => 'test']));
-
-        $sendData['description'] = null;
-        $this->assertUpdate($sendData, array_merge($sendData, ['description' =>  null]));
+        try {
+            $controller->store($request);
+        } catch (TestException $e) {
+            $this->assertCount(1, Video::all());
+        }
     }
 
-    public function testDelete()
+    public function testDestroy()
     {
         $this->assertNotNull(Video::find($this->video->id));
 
@@ -180,6 +241,9 @@ class VideoControllerTest extends TestCase
         $response
             ->assertStatus(204)
             ->assertNoContent();
+
+        $this->assertNull(Video::find($this->video->id));
+        $this->assertNotNull(Video::withTrashed($this->video->id));
     }
 
     protected function routeStore()
